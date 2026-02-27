@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  password   String
+  roleId     String
+  role       Role     @relation(fields: [roleId], references: [id])
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique // Super Admin, Store Manager, Cashier, Inventory Manager, Warehouse Manager
+  permissions String   // JSON array of permission strings
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  name          String
+  sku           String   @unique
+  barcode       String?
+  category      String
+  costPrice     Float
+  sellingPrice  Float
+  taxPct        Float    @default(0) // GST Tax percentage
+  reorderLevel  Int      @default(5)
+  supplierId    String?
+  supplier      Supplier? @relation(fields: [supplierId], references: [id])
+  variants      Variant[]
+  inventory     Inventory[]
+  transactions  TransactionItem[]
+  stockMovements StockMovement[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Variant {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size      String?
+  color     String?
+  sku       String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Location {
+  id               String   @id @default(cuid())
+  name             String   @unique // Store 1, Store 2, Exhibition Location, Warehouse
+  type             String   // Store, Warehouse, Exhibition
+  users            User[]
+  inventory        Inventory[]
+  transactions     Transaction[]
+  movementsFrom    StockMovement[] @relation("FromLocation")
+  movementsTo      StockMovement[] @relation("ToLocation")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Inventory {
+  id         String   @id @default(cuid())
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  quantity   Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([productId, locationId]) // Ensure one inventory record per product per location
+}
+
+model Transaction {
+  id            String   @id @default(cuid())
+  invoiceNumber String   @unique
+  totalAmount   Float
+  taxAmount     Float    @default(0)
+  discount      Float    @default(0)
+  paymentMethod String   // Cash, UPI, Card, Split
+  status        String   // COMPLETED, REFUNDED, PENDING
+  source        String   // POS, ONLINE
+  locationId    String?
+  location      Location? @relation(fields: [locationId], references: [id])
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id])
+  items         TransactionItem[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model TransactionItem {
+  id            String   @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id])
+  quantity      Int
+  price         Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Customer {
+  id            String   @id @default(cuid())
+  name          String
+  phone         String?  @unique
+  email         String?  @unique
+  loyaltyPoints Int      @default(0)
+  transactions  Transaction[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Supplier {
+  id        String    @id @default(cuid())
+  name      String
+  contact   String?
+  email     String?
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model StockMovement {
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  fromLocationId String?
+  fromLocation   Location? @relation("FromLocation", fields: [fromLocationId], references: [id])
+  toLocationId   String?
+  toLocation     Location? @relation("ToLocation", fields: [toLocationId], references: [id])
+  quantity       Int
+  reason         String   // Sale, Transfer, Adjustment, Restock
+  createdAt      DateTime @default(now())
+}
