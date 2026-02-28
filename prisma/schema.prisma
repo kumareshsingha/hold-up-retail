@@ -37,6 +37,7 @@ model Product {
   name          String
   sku           String   @unique
   barcode       String?
+  imageUrl      String?
   category      String
   costPrice     Float
   sellingPrice  Float

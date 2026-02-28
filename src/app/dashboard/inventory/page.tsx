@@ -36,6 +36,7 @@ export default function InventoryPage() {
     const [category, setCategory] = useState("")
     const [costPrice, setCostPrice] = useState("")
     const [sellingPrice, setSellingPrice] = useState("")
+    const [imageUrl, setImageUrl] = useState("")
 
     useEffect(() => {
         fetchProducts()
@@ -68,7 +69,7 @@ export default function InventoryPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    name, sku, category, costPrice: Number(costPrice), sellingPrice: Number(sellingPrice)
+                    name, sku, imageUrl, category, costPrice: Number(costPrice), sellingPrice: Number(sellingPrice)
                 })
             })
             if (res.ok) {
@@ -76,6 +77,7 @@ export default function InventoryPage() {
                 setIsDialogOpen(false)
                 setName("")
                 setSku("")
+                setImageUrl("")
                 setCategory("")
                 setCostPrice("")
                 setSellingPrice("")
@@ -163,6 +165,10 @@ export default function InventoryPage() {
                                     <Input id="sku" value={sku} onChange={(e) => setSku(e.target.value)} className="col-span-3" required />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="imageUrl" className="text-right">Image URL</Label>
+                                    <Input id="imageUrl" placeholder="https://" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} className="col-span-3" />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="category" className="text-right">Category</Label>
                                     <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} className="col-span-3" required />
                                 </div>
@@ -212,7 +218,14 @@ export default function InventoryPage() {
                         ) : (
                             products.map((product) => (
                                 <TableRow key={product.id}>
-                                    <TableCell className="font-medium">{product.name}</TableCell>
+                                    <TableCell className="font-medium flex items-center space-x-3">
+                                        {(product as any).imageUrl ? (
+                                            <img src={(product as any).imageUrl} alt={product.name} className="w-10 h-10 object-cover rounded-md border" />
+                                        ) : (
+                                            <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-md flex items-center justify-center text-xs text-zinc-400">No Img</div>
+                                        )}
+                                        <span>{product.name}</span>
+                                    </TableCell>
                                     <TableCell>{product.sku}</TableCell>
                                     <TableCell>{product.category}</TableCell>
                                     <TableCell className="text-right">₹{product.sellingPrice.toFixed(2)}</TableCell>

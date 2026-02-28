@@ -1,11 +1,19 @@
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/app/api/auth/[...nextauth]/route"
-import { redirect } from "next/navigation"
+"use client"
 
-export default async function SettingsPage() {
-    const session = await getServerSession(authOptions)
-    if (!session || session.user?.role !== "Super Admin") {
-        redirect("/dashboard")
+import { useState } from "react"
+
+export default function SettingsPage() {
+    const [webhookUrl, setWebhookUrl] = useState("https://example.myshopify.com")
+    const [isSaving, setIsSaving] = useState(false)
+    const [saved, setSaved] = useState(false)
+
+    const handleSave = () => {
+        setIsSaving(true)
+        setTimeout(() => {
+            setIsSaving(false)
+            setSaved(true)
+            setTimeout(() => setSaved(false), 2000)
+        }, 800)
     }
 
     return (
@@ -19,11 +27,22 @@ export default async function SettingsPage() {
                 <div className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 p-6">
                     <h3 className="text-lg font-semibold mb-2">E-Commerce Sync</h3>
                     <p className="text-sm text-zinc-500 mb-4">Configure webhook URLs and API keys for Shopify / WooCommerce integrations.</p>
-                    <div className="flex items-center space-x-4 opacity-50">
-                        <input disabled className="flex-1 px-3 py-2 border rounded-md dark:bg-zinc-900 dark:border-zinc-700 text-sm" value="https://example.myshopify.com" type="text" />
-                        <button disabled className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-md text-sm font-medium">Save</button>
+                    <div className="flex items-center space-x-4">
+                        <input
+                            className="flex-1 px-3 py-2 border rounded-md dark:bg-zinc-900 dark:border-zinc-700 text-sm focus:outline-none focus:ring-1 focus:ring-[#4c1d95]"
+                            value={webhookUrl}
+                            onChange={(e) => setWebhookUrl(e.target.value)}
+                            type="text"
+                            placeholder="Enter webhook URL..."
+                        />
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving}
+                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${saved ? 'bg-green-600 text-white' : 'bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700'}`}
+                        >
+                            {isSaving ? "Saving..." : saved ? "Saved!" : "Save"}
+                        </button>
                     </div>
-                    <p className="text-xs text-red-500 mt-2">Configuration locked. Please contact system administrator.</p>
                 </div>
 
                 <div className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 p-6">

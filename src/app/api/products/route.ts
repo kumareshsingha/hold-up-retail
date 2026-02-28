@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         }
 
         const data = await req.json()
-        const { name, sku, barcode, category, costPrice, sellingPrice, taxPct, reorderLevel } = data
+        const { name, sku, barcode, imageUrl, category, costPrice, sellingPrice, taxPct, reorderLevel } = data
 
         // Validate required fields
         if (!name || !sku || !category || costPrice === undefined || sellingPrice === undefined) {
@@ -52,6 +52,7 @@ export async function POST(req: Request) {
                 name,
                 sku,
                 barcode,
+                imageUrl,
                 category,
                 costPrice: Number(costPrice),
                 sellingPrice: Number(sellingPrice),
