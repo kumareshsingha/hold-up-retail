@@ -147,7 +147,7 @@ export default function InventoryPage() {
                     </Button>
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white">
+                            <Button className="bg-[#55142a] hover:bg-[#6f1b37] text-white">
                                 <Plus className="mr-2 h-4 w-4" /> Add Product
                             </Button>
                         </DialogTrigger>
@@ -181,7 +181,7 @@ export default function InventoryPage() {
                                     <Input id="sellingPrice" type="number" step="0.01" value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} className="col-span-3" required />
                                 </div>
                                 <div className="flex justify-end mt-4">
-                                    <Button type="submit" disabled={isSubmitting} className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white">
+                                    <Button type="submit" disabled={isSubmitting} className="bg-[#55142a] hover:bg-[#6f1b37] text-white">
                                         {isSubmitting ? "Adding..." : "Add Product"}
                                     </Button>
                                 </div>

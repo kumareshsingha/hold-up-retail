@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Hold Up Retail Solutions",
+  title: "Craftomania Partners",
   description: "Advanced POS and Inventory Management System",
 };
 

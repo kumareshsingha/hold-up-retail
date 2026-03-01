@@ -76,7 +76,7 @@ export default function LocationsPage() {
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white">
+                        <Button className="bg-[#55142a] hover:bg-[#6f1b37] text-white">
                             <Plus className="mr-2 h-4 w-4" /> Add Location
                         </Button>
                     </DialogTrigger>
@@ -103,7 +103,7 @@ export default function LocationsPage() {
                                 </select>
                             </div>
                             <div className="flex justify-end mt-4">
-                                <Button type="submit" disabled={isSubmitting} className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white">
+                                <Button type="submit" disabled={isSubmitting} className="bg-[#55142a] hover:bg-[#6f1b37] text-white">
                                     {isSubmitting ? "Saving..." : "Save Location"}
                                 </Button>
                             </div>
@@ -116,8 +116,8 @@ export default function LocationsPage() {
                 {locations.map((location) => (
                     <div key={location.id} className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-950 p-6">
                         <div className="flex items-center space-x-4">
-                            <div className="p-3 bg-[#4c1d95]/10 rounded-lg dark:bg-[#4c1d95]/20">
-                                <Store className="h-6 w-6 text-[#4c1d95] dark:text-[#a78bfa]" />
+                            <div className="p-3 bg-[#55142a]/10 rounded-lg dark:bg-[#55142a]/20">
+                                <Store className="h-6 w-6 text-[#55142a] dark:text-[#a78bfa]" />
                             </div>
                             <div>
                                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">{location.name}</h3>

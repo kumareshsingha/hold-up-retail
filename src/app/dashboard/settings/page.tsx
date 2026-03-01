@@ -29,7 +29,7 @@ export default function SettingsPage() {
                     <p className="text-sm text-zinc-500 mb-4">Configure webhook URLs and API keys for Shopify / WooCommerce integrations.</p>
                     <div className="flex items-center space-x-4">
                         <input
-                            className="flex-1 px-3 py-2 border rounded-md dark:bg-zinc-900 dark:border-zinc-700 text-sm focus:outline-none focus:ring-1 focus:ring-[#4c1d95]"
+                            className="flex-1 px-3 py-2 border rounded-md dark:bg-zinc-900 dark:border-zinc-700 text-sm focus:outline-none focus:ring-1 focus:ring-[#55142a]"
                             value={webhookUrl}
                             onChange={(e) => setWebhookUrl(e.target.value)}
                             type="text"

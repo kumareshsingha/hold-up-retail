@@ -159,7 +159,7 @@ export default function TransfersPage() {
                                     <Input required value={adjReason} onChange={e => setAdjReason(e.target.value)} placeholder="e.g. Damaged goods, found stock" />
                                 </div>
                             </div>
-                            <Button type="submit" disabled={adjLoading} className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white">
+                            <Button type="submit" disabled={adjLoading} className="bg-[#55142a] hover:bg-[#6f1b37] text-white">
                                 {adjLoading ? "Processing..." : "Submit Adjustment"}
                             </Button>
                         </form>
@@ -209,7 +209,7 @@ export default function TransfersPage() {
                                     <Input type="number" min="1" required value={txQuantity} onChange={e => setTxQuantity(e.target.value)} placeholder="Must be > 0" />
                                 </div>
                             </div>
-                            <Button type="submit" disabled={txLoading} className="bg-[#4c1d95] hover:bg-[#5b21b6] text-white">
+                            <Button type="submit" disabled={txLoading} className="bg-[#55142a] hover:bg-[#6f1b37] text-white">
                                 {txLoading ? "Processing..." : "Initiate Transfer"}
                             </Button>
                         </form>

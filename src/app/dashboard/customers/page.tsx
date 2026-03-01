@@ -72,7 +72,7 @@ export default async function CustomersPage() {
                                     <div className="text-sm">{customer.email || "N/A"}</div>
                                     <div className="text-xs text-zinc-500">{customer.phone || "N/A"}</div>
                                 </TableCell>
-                                <TableCell className="text-right font-medium text-[#4c1d95] dark:text-[#a78bfa]">
+                                <TableCell className="text-right font-medium text-[#55142a] dark:text-[#a78bfa]">
                                     {customer.loyaltyPoints}
                                 </TableCell>
                                 <TableCell className="text-right">{customer._count.transactions}</TableCell>

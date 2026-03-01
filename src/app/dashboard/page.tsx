@@ -51,7 +51,7 @@ export default function DashboardPage() {
                     Dashboard Overview
                 </h2>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Welcome to Hold Up Retail Solutions.
+                    Welcome to Craftomania Partners.
                 </p>
             </div>
 

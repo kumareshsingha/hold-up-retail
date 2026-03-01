@@ -161,7 +161,7 @@ export default function POSPage() {
                     {filteredProducts.map(product => (
                         <div
                             key={product.id}
-                            className="group cursor-pointer rounded-xl border border-zinc-200 bg-white p-4 hover:border-[#4c1d95] hover:shadow-md transition-all dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-[#5b21b6]"
+                            className="group cursor-pointer rounded-xl border border-zinc-200 bg-white p-4 hover:border-[#55142a] hover:shadow-md transition-all dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-[#6f1b37]"
                             onClick={() => addToCart(product)}
                         >
                             <div className="aspect-square bg-zinc-100 dark:bg-zinc-900 rounded-lg mb-3 flex items-center justify-center">
@@ -170,7 +170,7 @@ export default function POSPage() {
                             <h3 className="font-semibold text-zinc-900 dark:text-white line-clamp-1">{product.name}</h3>
                             <p className="text-sm text-zinc-500  dark:text-zinc-400 mb-2 truncate">SKU: {product.sku}</p>
                             <div className="flex justify-between items-center">
-                                <span className="font-bold text-[#4c1d95] dark:text-[#a78bfa]">₹{product.sellingPrice.toFixed(2)}</span>
+                                <span className="font-bold text-[#55142a] dark:text-[#a78bfa]">₹{product.sellingPrice.toFixed(2)}</span>
                             </div>
                         </div>
                     ))}
@@ -252,7 +252,7 @@ export default function POSPage() {
                     </div>
 
                     <Button
-                        className="w-full h-14 text-lg bg-[#4c1d95] hover:bg-[#5b21b6] text-white"
+                        className="w-full h-14 text-lg bg-[#55142a] hover:bg-[#6f1b37] text-white"
                         disabled={cart.length === 0 || isCheckoutLoading}
                         onClick={handleCheckout}
                     >
@@ -270,7 +270,7 @@ export default function POSPage() {
                     {receiptData && (
                         <div className="space-y-4" id="print-receipt-area">
                             <div className="text-center space-y-1 pb-4 border-b border-zinc-200 border-dashed dark:border-zinc-800">
-                                <h3 className="font-bold text-lg">Hold Up Retail</h3>
+                                <h3 className="font-bold text-lg">Craftomania</h3>
                                 <p className="text-sm text-zinc-500">{locations.find(l => l.id === selectedLocation)?.name}</p>
                                 <p className="text-xs text-zinc-500">{receiptData.date.toLocaleString()}</p>
                             </div>
@@ -324,7 +324,7 @@ export default function POSPage() {
             {receiptData && (
                 <div className="hidden print:block fixed inset-0 bg-white z-50 p-8 text-black" style={{ width: '80mm', margin: '0 auto' }}>
                     <div className="text-center space-y-1 pb-4 border-b border-black border-dashed">
-                        <h3 className="font-bold text-lg">Hold Up Retail</h3>
+                        <h3 className="font-bold text-lg">Craftomania</h3>
                         <p className="text-sm">{locations.find(l => l.id === selectedLocation)?.name}</p>
                         <p className="text-xs">{receiptData.date.toLocaleString()}</p>
                     </div>

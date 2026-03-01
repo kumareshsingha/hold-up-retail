@@ -35,8 +35,8 @@ export default function LoginPage() {
         <div className="flex h-screen w-screen items-center justify-center bg-gray-50/50 dark:bg-zinc-950">
             <div className="mx-auto w-full max-w-[400px] p-6 lg:p-8">
                 <div className="flex flex-col items-center space-y-2 text-center">
-                    <h1 className="text-2xl font-semibold tracking-tight text-[#4c1d95]">
-                        Hold Up Retail Solutions
+                    <h1 className="text-2xl font-semibold tracking-tight text-[#55142a]">
+                        Craftomania Partners
                     </h1>
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
                         Enter your email and password to access your account
@@ -78,7 +78,7 @@ export default function LoginPage() {
                                 />
                             </div>
                             <button
-                                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed] disabled:pointer-events-none disabled:opacity-50 bg-[#4c1d95] text-white hover:bg-[#5b21b6] h-10 w-full"
+                                className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed] disabled:pointer-events-none disabled:opacity-50 bg-[#55142a] text-white hover:bg-[#6f1b37] h-10 w-full"
                                 type="submit"
                                 disabled={loading}
                             >

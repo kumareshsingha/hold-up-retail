@@ -96,7 +96,7 @@ export default async function ReportsPage() {
                                             <div className="text-xs text-zinc-500">{item.sku}</div>
                                         </TableCell>
                                         <TableCell className="text-right">₹{item.costPrice.toFixed(2)}</TableCell>
-                                        <TableCell className="text-right text-[#4c1d95] dark:text-[#a78bfa] font-medium">₹{item.sellingPrice.toFixed(2)}</TableCell>
+                                        <TableCell className="text-right text-[#55142a] dark:text-[#a78bfa] font-medium">₹{item.sellingPrice.toFixed(2)}</TableCell>
                                         <TableCell className="text-right text-green-600 dark:text-green-400 font-bold">{item.marginPct.toFixed(1)}%</TableCell>
                                     </TableRow>
                                 ))}
