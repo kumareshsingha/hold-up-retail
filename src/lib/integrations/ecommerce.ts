@@ -9,15 +9,12 @@ export async function pushStockToEcommerce(productId: string) {
     try {
         // Find current total stock across all locations (or just warehouse depending on business logic)
         const product = await prisma.product.findUnique({
-            where: { id: productId },
-            include: {
-                inventory: true
-            }
+            where: { id: productId }
         })
 
         if (!product) return
 
-        const totalStock = product.inventory.reduce((acc: number, curr: { quantity: number }) => acc + curr.quantity, 0)
+        const totalStock = product.stock
 
         // API Call Simulation
         console.log(`[E-COMMERCE SYNC] Pushing stock update for SKU: ${product.sku}. New Stock: ${totalStock}`)

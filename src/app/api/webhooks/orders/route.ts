@@ -13,31 +13,28 @@ export async function POST(req: Request) {
         }
 
         // 2. Parse Payload (Expecting a generic e-commerce payload)
-        // Example: { orderId: "123", source: "SHOPIFY", items: [{ sku: "TSHIRT-01", quantity: 2, price: 500 }] }
-        const { orderId, source, items } = await req.json()
+        // Example: { orderId: "123", source: "SHOPIFY", sellerId: "cl_123", items: [{ sku: "TSHIRT-01", quantity: 2, price: 500 }] }
+        const { orderId, source, items, sellerId } = await req.json()
 
         if (!orderId || !items || !Array.isArray(items)) {
             return NextResponse.json({ error: "Invalid webhook payload format" }, { status: 400 })
         }
 
-        // 3. Find default fulfillment location (e.g., Warehouse)
-        let fulfillmentLocation = await prisma.location.findFirst({
-            where: { type: "Warehouse" }
-        })
-
-        if (!fulfillmentLocation) {
-            // Fallback to the first available location
-            fulfillmentLocation = await prisma.location.findFirst()
-            if (!fulfillmentLocation) {
-                return NextResponse.json({ error: "No locations available for fulfillment" }, { status: 500 })
+        // 3. Find target seller
+        let targetSellerId = sellerId
+        if (!targetSellerId) {
+            const firstSeller = await prisma.seller.findFirst()
+            if (!firstSeller) {
+                return NextResponse.json({ error: "No sellers available for fulfillment" }, { status: 500 })
             }
+            targetSellerId = firstSeller.id
         }
 
         // 4. Process the order atomically
         const result = await prisma.$transaction(async (tx) => {
             // Create an online transaction record
             const invoiceNumber = `WEB-${source}-${orderId}-${Date.now()}`
-            const totalAmount = items.reduce((acc, item) => acc + (item.price * item.quantity), 0)
+            const totalAmount = items.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0)
 
             const transaction = await tx.transaction.create({
                 data: {
@@ -46,7 +43,7 @@ export async function POST(req: Request) {
                     paymentMethod: "ONLINE",
                     status: "COMPLETED",
                     source: source || "ONLINE_STORE",
-                    locationId: fulfillmentLocation.id,
+                    sellerId: targetSellerId,
                 }
             })
 
@@ -62,35 +59,11 @@ export async function POST(req: Request) {
                     continue
                 }
 
-                // Find or Create Inventory Record
-                const inventory = await tx.inventory.findUnique({
-                    where: {
-                        productId_locationId: {
-                            productId: product.id,
-                            locationId: fulfillmentLocation.id
-                        }
-                    }
-                })
-
-                if (!inventory) {
-                    console.warn(`Webhook: No inventory record at fulfillment center for ${product.sku}. Generating empty record.`)
-                }
-
-                // Deduct stock (Allowing negative stock for online orders so fulfillment managers can see backlog)
-                await tx.inventory.upsert({
-                    where: {
-                        productId_locationId: {
-                            productId: product.id,
-                            locationId: fulfillmentLocation.id
-                        }
-                    },
-                    update: {
-                        quantity: { decrement: item.quantity }
-                    },
-                    create: {
-                        productId: product.id,
-                        locationId: fulfillmentLocation.id, // Fallback if no specific locationId is found
-                        quantity: -item.quantity
+                // Deduct stock (Allow negative to show backlog)
+                await tx.product.update({
+                    where: { id: product.id },
+                    data: {
+                        stock: { decrement: item.quantity }
                     }
                 })
 
@@ -101,16 +74,6 @@ export async function POST(req: Request) {
                         productId: product.id,
                         quantity: item.quantity,
                         price: item.price
-                    }
-                })
-
-                // Log Stock Movement
-                await tx.stockMovement.create({
-                    data: {
-                        productId: product.id,
-                        fromLocationId: fulfillmentLocation.id,
-                        quantity: item.quantity,
-                        reason: `Online Order #${orderId} (${source})`
                     }
                 })
             }

@@ -6,7 +6,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions)
-        if (!session || !["Super Admin", "Store Manager", "Inventory Manager"].includes(session.user?.role as string)) {
+        if (!session || !["Super Admin", "Seller"].includes(session.user?.role as string)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
@@ -36,8 +36,9 @@ export async function POST(req: Request) {
                         category: String(p.category),
                         costPrice: Number(p.costPrice) || 0,
                         sellingPrice: Number(p.sellingPrice) || 0,
-                        reorderLevel: Number(p.reorderLevel) || 5,
-                        taxPct: Number(p.taxPct) || 0,
+                        stock: Number(p.stock) || 0,
+                        sellerId: session.user.sellerId || "",
+                        status: session.user.role === "Super Admin" ? "APPROVED" : "PENDING"
                     }
                 })
                 createdProducts.push(product)

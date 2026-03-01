@@ -10,13 +10,18 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
+        const where: any = {}
+        const include: any = {}
+
+        if (session.user.role === "Seller") {
+            where.sellerId = session.user.sellerId
+        } else {
+            include.seller = true
+        }
+
         const products = await prisma.product.findMany({
-            include: {
-                variants: true,
-                inventory: {
-                    include: { location: true }
-                }
-            },
+            where,
+            include,
             orderBy: { createdAt: "desc" }
         })
 
@@ -30,12 +35,12 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions)
-        if (!session || !["Super Admin", "Store Manager", "Inventory Manager"].includes(session.user?.role as string)) {
+        if (!session || !["Super Admin", "Seller"].includes(session.user?.role as string)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
         const data = await req.json()
-        const { name, sku, barcode, imageUrl, category, costPrice, sellingPrice, taxPct, reorderLevel } = data
+        const { name, sku, imageUrl, category, costPrice, sellingPrice, stock } = data
 
         // Validate required fields
         if (!name || !sku || !category || costPrice === undefined || sellingPrice === undefined) {
@@ -51,13 +56,13 @@ export async function POST(req: Request) {
             data: {
                 name,
                 sku,
-                barcode,
                 imageUrl,
                 category,
                 costPrice: Number(costPrice),
                 sellingPrice: Number(sellingPrice),
-                taxPct: Number(taxPct) || 0,
-                reorderLevel: Number(reorderLevel) || 5,
+                stock: Number(stock) || 0,
+                sellerId: session.user.sellerId || "", // If Super Admin creates, UI must pass sellerId, but for now fallback to session
+                status: session.user.role === "Super Admin" ? "APPROVED" : "PENDING"
             }
         })
 

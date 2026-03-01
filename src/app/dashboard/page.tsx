@@ -19,7 +19,7 @@ export default function DashboardPage() {
             try {
                 const [productsRes, lowStockRes, analyticsRes] = await Promise.all([
                     fetch("/api/products"),
-                    fetch("/api/inventory/low-stock"),
+                    fetch("/api/products/low-stock"),
                     fetch("/api/analytics")
                 ])
 

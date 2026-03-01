@@ -33,13 +33,14 @@ export async function GET() {
             },
         })
 
-        // Default Location
-        await prisma.location.upsert({
+        // Default Seller
+        await prisma.seller.upsert({
             where: { name: 'Main HQ' },
             update: {},
             create: {
                 name: 'Main HQ',
-                type: 'Warehouse',
+                contactInfo: 'admin@holdup.com',
+                status: 'ACTIVE'
             }
         })
 

@@ -17,17 +17,30 @@ model User {
   password   String
   roleId     String
   role       Role     @relation(fields: [roleId], references: [id])
-  locationId String?
-  location   Location? @relation(fields: [locationId], references: [id])
+  sellerId   String?
+  seller     Seller?  @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
 
 model Role {
   id          String   @id @default(cuid())
-  name        String   @unique // Super Admin, Store Manager, Cashier, Inventory Manager, Warehouse Manager
+  name        String   @unique // Super Admin, Seller
   permissions String   // JSON array of permission strings
   users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Seller {
+  id          String   @id @default(cuid())
+  name        String   @unique // Business Name
+  contactInfo String?
+  status      String   @default("ACTIVE") // ACTIVE, INACTIVE
+  users       User[]
+  products    Product[]
+  transactions Transaction[]
+  customers   Customer[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -36,73 +49,37 @@ model Product {
   id            String   @id @default(cuid())
   name          String
   sku           String   @unique
-  barcode       String?
   imageUrl      String?
   category      String
   costPrice     Float
   sellingPrice  Float
-  taxPct        Float    @default(0) // GST Tax percentage
-  reorderLevel  Int      @default(5)
-  supplierId    String?
-  supplier      Supplier? @relation(fields: [supplierId], references: [id])
-  variants      Variant[]
-  inventory     Inventory[]
+  stock         Int      @default(0)
+  status        String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  
+  sellerId      String
+  seller        Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
   transactions  TransactionItem[]
-  stockMovements StockMovement[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
 
-model Variant {
-  id        String   @id @default(cuid())
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  size      String?
-  color     String?
-  sku       String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Location {
-  id               String   @id @default(cuid())
-  name             String   @unique // Store 1, Store 2, Exhibition Location, Warehouse
-  type             String   // Store, Warehouse, Exhibition
-  users            User[]
-  inventory        Inventory[]
-  transactions     Transaction[]
-  movementsFrom    StockMovement[] @relation("FromLocation")
-  movementsTo      StockMovement[] @relation("ToLocation")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-}
-
-model Inventory {
-  id         String   @id @default(cuid())
-  productId  String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  locationId String
-  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
-  quantity   Int      @default(0)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@unique([productId, locationId]) // Ensure one inventory record per product per location
-}
-
 model Transaction {
   id            String   @id @default(cuid())
-  invoiceNumber String   @unique
+  invoiceNumber String   @unique // Keep this unique, or make it unique per seller if needed, but unique globally is safer.
   totalAmount   Float
   taxAmount     Float    @default(0)
   discount      Float    @default(0)
   paymentMethod String   // Cash, UPI, Card, Split
   status        String   // COMPLETED, REFUNDED, PENDING
   source        String   // POS, ONLINE
-  locationId    String?
-  location      Location? @relation(fields: [locationId], references: [id])
+  
+  sellerId      String
+  seller        Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
   customerId    String?
-  customer      Customer? @relation(fields: [customerId], references: [id])
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  
   items         TransactionItem[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -123,33 +100,17 @@ model TransactionItem {
 model Customer {
   id            String   @id @default(cuid())
   name          String
-  phone         String?  @unique
-  email         String?  @unique
+  phone         String?  
+  email         String?  
   loyaltyPoints Int      @default(0)
+  
+  sellerId      String
+  seller        Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  
   transactions  Transaction[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-}
 
-model Supplier {
-  id        String    @id @default(cuid())
-  name      String
-  contact   String?
-  email     String?
-  products  Product[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-model StockMovement {
-  id             String   @id @default(cuid())
-  productId      String
-  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  fromLocationId String?
-  fromLocation   Location? @relation("FromLocation", fields: [fromLocationId], references: [id])
-  toLocationId   String?
-  toLocation     Location? @relation("ToLocation", fields: [toLocationId], references: [id])
-  quantity       Int
-  reason         String   // Sale, Transfer, Adjustment, Restock
-  createdAt      DateTime @default(now())
+  @@unique([phone, sellerId])
+  @@unique([email, sellerId])
 }

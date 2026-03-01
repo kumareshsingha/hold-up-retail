@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
                     email: user.email,
                     name: user.name,
                     role: user.role.name,
-                    locationId: user.locationId
+                    sellerId: user.sellerId
                 }
             }
         })
@@ -46,7 +46,7 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.id = user.id
                 token.role = user.role
-                token.locationId = user.locationId
+                token.sellerId = user.sellerId
             }
             return token
         },
@@ -54,7 +54,7 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 session.user.id = token.id as string
                 session.user.role = token.role as string
-                session.user.locationId = token.locationId as string | null
+                session.user.sellerId = token.sellerId as string | null
             }
             return session
         }

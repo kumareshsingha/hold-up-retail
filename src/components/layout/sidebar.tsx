@@ -11,18 +11,18 @@ import {
     Settings,
     LogOut,
     Store,
-    ArrowRightLeft
+    CheckCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navigation = [
-    { name: "Dashboard", href: "/dashboard", icon: BarChart3, roles: ["Super Admin", "Store Manager", "Cashier", "Inventory Manager"] },
-    { name: "POS Terminal", href: "/dashboard/pos", icon: ShoppingCart, roles: ["Super Admin", "Store Manager", "Cashier"] },
-    { name: "Inventory", href: "/dashboard/inventory", icon: Package, roles: ["Super Admin", "Store Manager", "Inventory Manager", "Warehouse Manager"] },
-    { name: "Stock Transfers", href: "/dashboard/transfers", icon: ArrowRightLeft, roles: ["Super Admin", "Store Manager", "Warehouse Manager"] },
-    { name: "Locations", href: "/dashboard/locations", icon: Store, roles: ["Super Admin"] },
-    { name: "Customers", href: "/dashboard/customers", icon: Users, roles: ["Super Admin", "Store Manager", "Cashier"] },
-    { name: "Reports & Analytics", href: "/dashboard/reports", icon: BarChart3, roles: ["Super Admin", "Store Manager"] },
+    { name: "Dashboard", href: "/dashboard", icon: BarChart3, roles: ["Super Admin", "Seller"] },
+    { name: "POS Terminal", href: "/dashboard/pos", icon: ShoppingCart, roles: ["Super Admin", "Seller"] },
+    { name: "Inventory", href: "/dashboard/inventory", icon: Package, roles: ["Super Admin", "Seller"] },
+    { name: "Sellers", href: "/dashboard/sellers", icon: Store, roles: ["Super Admin"] },
+    { name: "Product Approvals", href: "/dashboard/approvals", icon: CheckCircle, roles: ["Super Admin"] },
+    { name: "Customers", href: "/dashboard/customers", icon: Users, roles: ["Super Admin", "Seller"] },
+    { name: "Reports & Analytics", href: "/dashboard/reports", icon: BarChart3, roles: ["Super Admin", "Seller"] },
     { name: "Settings", href: "/dashboard/settings", icon: Settings, roles: ["Super Admin"] },
 ]
 
@@ -38,7 +38,7 @@ export function Sidebar() {
     return (
         <div className="flex h-full w-64 flex-col bg-[#55142a] text-[#fff3e3] border-r border-[#6f1b37] dark:bg-[#3f0f1f] dark:border-[#55142a]">
             <div className="flex h-16 shrink-0 items-center px-6">
-                <h1 className="text-xl font-bold text-[#fff3e3] truncate">Craftomania</h1>
+                <h1 className="text-xl font-bold text-[#fff3e3] truncate">Craftomania Partners</h1>
             </div>
             <div className="flex flex-1 flex-col overflow-y-auto">
                 <nav className="flex-1 space-y-1 px-4 py-4">

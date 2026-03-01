@@ -11,8 +11,9 @@ type Product = {
     name: string
     sku: string
     sellingPrice: number
-    taxPct: number
-    inventory: { quantity: number; location: { id: string } }[]
+    stock: number
+    sellerId: string
+    status: string
 }
 
 type CartItem = Product & {
@@ -24,24 +25,18 @@ export default function POSPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const [cart, setCart] = useState<CartItem[]>([])
 
-    const [locations, setLocations] = useState<{ id: string, name: string }[]>([])
-    const [selectedLocation, setSelectedLocation] = useState("")
     const [isCheckoutLoading, setIsCheckoutLoading] = useState(false)
-    const [receiptData, setReceiptData] = useState<{ transactionId: string, items: CartItem[], total: number, tax: number, subtotal: number, date: Date } | null>(null)
+    const [receiptData, setReceiptData] = useState<{ transactionId: string, items: CartItem[], total: number, subtotal: number, date: Date } | null>(null)
 
-    // Load products & locations
+    // Load products
     useEffect(() => {
         async function fetchData() {
             try {
-                const [prodRes, locRes] = await Promise.all([
-                    fetch("/api/products"),
-                    fetch("/api/locations")
-                ])
-                if (prodRes.ok) setProducts(await prodRes.json())
-                if (locRes.ok) {
-                    const locs = await locRes.json()
-                    setLocations(locs)
-                    if (locs.length > 0) setSelectedLocation(locs[0].id)
+                const res = await fetch("/api/products")
+                if (res.ok) {
+                    const data = await res.json()
+                    // Filter for APPROVED only in POS
+                    setProducts(data.filter((p: Product) => p.status === "APPROVED"))
                 }
             } catch (error) {
                 console.error("Failed to load POS data", error)
@@ -72,7 +67,7 @@ export default function POSPage() {
             return prev.map(item => {
                 if (item.id === productId) {
                     const newQty = item.cartQuantity + delta
-                    if (newQty <= 0) return null // handle removal later or let it be 0
+                    if (newQty <= 0) return null
                     return { ...item, cartQuantity: newQty }
                 }
                 return item
@@ -86,20 +81,14 @@ export default function POSPage() {
 
     const calculateTotals = () => {
         const subtotal = cart.reduce((acc, item) => acc + (item.sellingPrice * item.cartQuantity), 0)
-        // Assume tax is calculated per item based on default sellingPrice. 
-        // Usually sellingPrice might be tax inclusive/exclusive. Assuming exclusive here.
-        const tax = cart.reduce((acc, item) => acc + (item.sellingPrice * item.cartQuantity * (item.taxPct / 100)), 0)
-        const total = subtotal + tax
-        return { subtotal, tax, total }
+        const total = subtotal
+        return { subtotal, total }
     }
 
-    const { subtotal, tax, total } = calculateTotals()
+    const { subtotal, total } = calculateTotals()
 
     const handleCheckout = async () => {
-        if (!selectedLocation) {
-            alert("Please select a store location first.")
-            return
-        }
+        if (cart.length === 0) return
 
         setIsCheckoutLoading(true)
         try {
@@ -108,8 +97,7 @@ export default function POSPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     cart,
-                    paymentMethod: "CASH", // Future: add payment method selection UI
-                    locationId: selectedLocation,
+                    paymentMethod: "CASH",
                     totalAmount: total,
                 })
             })
@@ -120,7 +108,6 @@ export default function POSPage() {
                     transactionId: data.transactionId,
                     items: [...cart],
                     total,
-                    tax,
                     subtotal,
                     date: new Date()
                 })
@@ -189,15 +176,6 @@ export default function POSPage() {
                         <h2 className="text-lg font-bold flex items-center gap-2">
                             <ShoppingCart className="h-5 w-5" /> Current Order
                         </h2>
-                        <select
-                            className="text-sm border border-zinc-300 dark:border-zinc-700 rounded p-1 bg-white dark:bg-zinc-950"
-                            value={selectedLocation}
-                            onChange={(e) => setSelectedLocation(e.target.value)}
-                        >
-                            {locations.map(loc => (
-                                <option key={loc.id} value={loc.id}>{loc.name}</option>
-                            ))}
-                        </select>
                     </div>
                 </div>
 
@@ -241,10 +219,6 @@ export default function POSPage() {
                             <span>Subtotal</span>
                             <span>₹{subtotal.toFixed(2)}</span>
                         </div>
-                        <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
-                            <span>Tax (GST)</span>
-                            <span>₹{tax.toFixed(2)}</span>
-                        </div>
                         <div className="flex justify-between text-lg font-bold border-t border-zinc-200 dark:border-zinc-800 pt-2 text-zinc-900 dark:text-zinc-100">
                             <span>Total</span>
                             <span>₹{total.toFixed(2)}</span>
@@ -270,8 +244,7 @@ export default function POSPage() {
                     {receiptData && (
                         <div className="space-y-4" id="print-receipt-area">
                             <div className="text-center space-y-1 pb-4 border-b border-zinc-200 border-dashed dark:border-zinc-800">
-                                <h3 className="font-bold text-lg">Craftomania</h3>
-                                <p className="text-sm text-zinc-500">{locations.find(l => l.id === selectedLocation)?.name}</p>
+                                <h3 className="font-bold text-lg">Craftomania Partners</h3>
                                 <p className="text-xs text-zinc-500">{receiptData.date.toLocaleString()}</p>
                             </div>
 
@@ -294,10 +267,6 @@ export default function POSPage() {
                                 <div className="flex justify-between text-sm text-zinc-600 dark:text-zinc-400">
                                     <span>Subtotal</span>
                                     <span>₹{receiptData.subtotal.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between text-sm text-zinc-600 dark:text-zinc-400">
-                                    <span>Tax (GST)</span>
-                                    <span>₹{receiptData.tax.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-lg font-bold pt-2">
                                     <span>Total</span>
@@ -325,7 +294,6 @@ export default function POSPage() {
                 <div className="hidden print:block fixed inset-0 bg-white z-50 p-8 text-black" style={{ width: '80mm', margin: '0 auto' }}>
                     <div className="text-center space-y-1 pb-4 border-b border-black border-dashed">
                         <h3 className="font-bold text-lg">Craftomania</h3>
-                        <p className="text-sm">{locations.find(l => l.id === selectedLocation)?.name}</p>
                         <p className="text-xs">{receiptData.date.toLocaleString()}</p>
                     </div>
 
@@ -348,10 +316,6 @@ export default function POSPage() {
                         <div className="flex justify-between text-sm">
                             <span>Subtotal</span>
                             <span>₹{receiptData.subtotal.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                            <span>Tax (GST)</span>
-                            <span>₹{receiptData.tax.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-lg font-bold pt-2">
                             <span>Total</span>

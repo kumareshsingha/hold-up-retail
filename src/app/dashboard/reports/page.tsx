@@ -13,12 +13,23 @@ import {
 
 export default async function ReportsPage() {
     const session = await getServerSession(authOptions)
-    if (!session || !["Super Admin", "Store Manager"].includes(session.user?.role as string)) {
+    if (!session) redirect("/login")
+
+    const isSeller = session.user.role === "Seller"
+    const isSuperAdmin = session.user.role === "Super Admin"
+
+    if (!isSuperAdmin && !isSeller) {
         redirect("/dashboard")
+    }
+
+    const where: any = {}
+    if (isSeller) {
+        where.sellerId = session.user.sellerId
     }
 
     // 1. Profit Margin Calculation (Sort by highest margin to lowest)
     const products = await prisma.product.findMany({
+        where,
         select: {
             id: true,
             name: true,
@@ -36,11 +47,10 @@ export default async function ReportsPage() {
 
     // 2. Dead Stock Analysis (Products with inventory but no recent sales)
     // For simplicity, we define "dead stock" as stuff with inventory > 0 but 0 total transactions
-    const inventoryWithNoSales = await prisma.product.findMany({
+    const deadStockProducts = await prisma.product.findMany({
         where: {
-            inventory: {
-                some: { quantity: { gt: 0 } }
-            },
+            ...where,
+            stock: { gt: 0 },
             transactions: {
                 none: {} // Has no transaction items
             }
@@ -50,14 +60,13 @@ export default async function ReportsPage() {
             name: true,
             sku: true,
             costPrice: true,
-            inventory: { select: { quantity: true } }
+            stock: true
         }
     })
 
-    const deadStock = inventoryWithNoSales.map(p => {
-        const totalStock = p.inventory.reduce((acc, curr) => acc + curr.quantity, 0)
-        const deadCapital = totalStock * p.costPrice
-        return { ...p, totalStock, deadCapital }
+    const deadStock = deadStockProducts.map(p => {
+        const deadCapital = p.stock * p.costPrice
+        return { ...p, totalStock: p.stock, deadCapital }
     }).sort((a, b) => b.deadCapital - a.deadCapital)
 
     return (

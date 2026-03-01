@@ -10,23 +10,24 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
+        const where: any = { status: "COMPLETED" }
+        if (session.user.role === "Seller") {
+            where.sellerId = session.user.sellerId
+        }
+
         // 1. Total Revenue (sum of all completed transactions)
         const revenueResult = await prisma.transaction.aggregate({
             _sum: {
                 totalAmount: true
             },
-            where: {
-                status: "COMPLETED"
-            }
+            where
         })
 
         const totalRevenue = revenueResult._sum.totalAmount || 0
 
         // 2. Total Sales Count
         const totalSales = await prisma.transaction.count({
-            where: {
-                status: "COMPLETED"
-            }
+            where
         })
 
         return NextResponse.json({

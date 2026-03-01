@@ -10,13 +10,24 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const locations = await prisma.location.findMany({
-            orderBy: { name: "asc" }
+        const where: any = {
+            stock: {
+                lte: 10 // Threshold for low stock
+            }
+        }
+
+        if (session.user.role === "Seller") {
+            where.sellerId = session.user.sellerId
+        }
+
+        const products = await prisma.product.findMany({
+            where,
+            orderBy: { stock: "asc" }
         })
 
-        return NextResponse.json(locations)
+        return NextResponse.json(products)
     } catch (error) {
-        console.error("Error fetching locations:", error)
+        console.error("Error fetching low stock:", error)
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
     }
 }

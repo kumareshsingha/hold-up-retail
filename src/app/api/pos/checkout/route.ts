@@ -6,13 +6,15 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions)
-        if (!session || !["Super Admin", "Store Manager", "Cashier"].includes(session.user?.role as string)) {
+        if (!session || !["Super Admin", "Seller"].includes(session.user?.role as string)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
         }
 
-        const { cart, paymentMethod, locationId, customerId, totalAmount } = await req.json()
+        const { cart, paymentMethod, customerId, totalAmount, sellerId } = await req.json()
 
-        if (!cart || cart.length === 0 || !paymentMethod || !locationId || totalAmount === undefined) {
+        const activeSellerId = session.user?.role === "Seller" ? session.user.sellerId : sellerId
+
+        if (!cart || cart.length === 0 || !paymentMethod || !activeSellerId || totalAmount === undefined) {
             return NextResponse.json({ error: "Missing required checkout fields" }, { status: 400 })
         }
 
@@ -27,7 +29,7 @@ export async function POST(req: Request) {
                     paymentMethod,
                     status: "COMPLETED",
                     source: "POS",
-                    locationId,
+                    sellerId: activeSellerId,
                     customerId: customerId || null,
                 }
             })
@@ -35,24 +37,23 @@ export async function POST(req: Request) {
             // 2. Add Transaction Items and deduct Inventory
             for (const item of cart) {
                 // Verify stock first
-                const inventoryRecord = await tx.inventory.findUnique({
-                    where: {
-                        productId_locationId: {
-                            productId: item.id,
-                            locationId: locationId
-                        }
-                    }
+                const product = await tx.product.findUnique({
+                    where: { id: item.id }
                 })
 
-                if (!inventoryRecord || inventoryRecord.quantity < item.cartQuantity) {
-                    throw new Error(`Insufficient stock for ${item.name}. Available: ${inventoryRecord?.quantity || 0}`)
+                if (!product || product.stock < item.cartQuantity) {
+                    throw new Error(`Insufficient stock for ${item.name}. Available: ${product?.stock || 0}`)
+                }
+
+                if (product.sellerId !== activeSellerId) {
+                    throw new Error(`Product ${item.name} does not belong to this seller`)
                 }
 
                 // Deduct stock
-                await tx.inventory.update({
-                    where: { id: inventoryRecord.id },
+                await tx.product.update({
+                    where: { id: product.id },
                     data: {
-                        quantity: { decrement: item.cartQuantity }
+                        stock: { decrement: item.cartQuantity }
                     }
                 })
 
@@ -65,16 +66,6 @@ export async function POST(req: Request) {
                         price: Number(item.sellingPrice)
                     }
                 })
-
-                // Log Stock Movement
-                await tx.stockMovement.create({
-                    data: {
-                        productId: item.id,
-                        fromLocationId: locationId,
-                        quantity: item.cartQuantity,
-                        reason: `POS Sale #${transaction.id}`
-                    }
-                })
             }
 
             return transaction
@@ -84,7 +75,7 @@ export async function POST(req: Request) {
 
     } catch (error: any) {
         console.error("Checkout Error:", error)
-        if (error.message.includes("Insufficient stock")) {
+        if (error.message.includes("Insufficient stock") || error.message.includes("does not belong")) {
             return NextResponse.json({ error: error.message }, { status: 400 })
         }
         return NextResponse.json({ error: "Internal Server Error during checkout" }, { status: 500 })

@@ -14,6 +14,7 @@ import { Plus } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
 type Product = {
     id: string
@@ -21,7 +22,9 @@ type Product = {
     sku: string
     category: string
     sellingPrice: number
-    inventory: { quantity: number; location: { name: string } }[]
+    stock: number
+    status: string
+    imageUrl?: string
 }
 
 export default function InventoryPage() {
@@ -37,6 +40,7 @@ export default function InventoryPage() {
     const [costPrice, setCostPrice] = useState("")
     const [sellingPrice, setSellingPrice] = useState("")
     const [imageUrl, setImageUrl] = useState("")
+    const [stock, setStock] = useState("0")
 
     useEffect(() => {
         fetchProducts()
@@ -57,10 +61,6 @@ export default function InventoryPage() {
         }
     }
 
-    const getTotalStock = (inventory: Product["inventory"]) => {
-        return inventory.reduce((acc, curr) => acc + curr.quantity, 0)
-    }
-
     const handleAddProduct = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsSubmitting(true)
@@ -69,7 +69,10 @@ export default function InventoryPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    name, sku, imageUrl, category, costPrice: Number(costPrice), sellingPrice: Number(sellingPrice)
+                    name, sku, imageUrl, category,
+                    costPrice: Number(costPrice),
+                    sellingPrice: Number(sellingPrice),
+                    stock: Number(stock)
                 })
             })
             if (res.ok) {
@@ -81,6 +84,7 @@ export default function InventoryPage() {
                 setCategory("")
                 setCostPrice("")
                 setSellingPrice("")
+                setStock("0")
             } else {
                 const error = await res.json()
                 alert(error.error || "Failed to add product")
@@ -180,6 +184,10 @@ export default function InventoryPage() {
                                     <Label htmlFor="sellingPrice" className="text-right">Price (₹)</Label>
                                     <Input id="sellingPrice" type="number" step="0.01" value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} className="col-span-3" required />
                                 </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="stock" className="text-right">Initial Stock</Label>
+                                    <Input id="stock" type="number" value={stock} onChange={(e) => setStock(e.target.value)} className="col-span-3" required />
+                                </div>
                                 <div className="flex justify-end mt-4">
                                     <Button type="submit" disabled={isSubmitting} className="bg-[#55142a] hover:bg-[#6f1b37] text-white">
                                         {isSubmitting ? "Adding..." : "Add Product"}
@@ -199,7 +207,8 @@ export default function InventoryPage() {
                             <TableHead>SKU</TableHead>
                             <TableHead>Category</TableHead>
                             <TableHead className="text-right">Price</TableHead>
-                            <TableHead className="text-right">Total Stock</TableHead>
+                            <TableHead className="text-right">Stock</TableHead>
+                            <TableHead className="text-center">Status</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -231,7 +240,19 @@ export default function InventoryPage() {
                                     <TableCell className="text-right">₹{product.sellingPrice.toFixed(2)}</TableCell>
                                     <TableCell className="text-right">
                                         <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-semibold text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300">
-                                            {getTotalStock(product.inventory)}
+                                            {product.stock}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        <span className={cn(
+                                            "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                                            product.status === "APPROVED"
+                                                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                                : product.status === "PENDING"
+                                                    ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                                    : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                                        )}>
+                                            {product.status}
                                         </span>
                                     </TableCell>
                                 </TableRow>

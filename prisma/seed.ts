@@ -16,6 +16,15 @@ async function main() {
         },
     })
 
+    const sellerRole = await prisma.role.upsert({
+        where: { name: 'Seller' },
+        update: {},
+        create: {
+            name: 'Seller',
+            permissions: JSON.stringify(['POS', 'INVENTORY', 'CUSTOMERS', 'REPORTS']),
+        },
+    })
+
     // Create default admin user
     const hashedPassword = await bcrypt.hash('admin123', 10)
     const adminEmail = 'admin@holdup.com'
@@ -33,13 +42,14 @@ async function main() {
 
     console.log(`Created admin user: ${adminEmail} / admin123`)
 
-    // Default Location
-    const HQ = await prisma.location.upsert({
+    // Default Seller
+    const defaultSeller = await prisma.seller.upsert({
         where: { name: 'Main HQ' },
         update: {},
         create: {
             name: 'Main HQ',
-            type: 'Warehouse',
+            contactInfo: 'admin@holdup.com',
+            status: 'ACTIVE'
         }
     })
 

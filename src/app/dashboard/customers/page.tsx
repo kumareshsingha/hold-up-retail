@@ -13,11 +13,22 @@ import {
 
 export default async function CustomersPage() {
     const session = await getServerSession(authOptions)
-    if (!session || !["Super Admin", "Store Manager", "Cashier"].includes(session.user?.role as string)) {
+    if (!session) redirect("/login")
+
+    const isSeller = session.user.role === "Seller"
+    const isSuperAdmin = session.user.role === "Super Admin"
+
+    if (!isSuperAdmin && !isSeller) {
         redirect("/dashboard")
     }
 
+    const where: any = {}
+    if (isSeller) {
+        where.sellerId = session.user.sellerId
+    }
+
     const customers = await prisma.customer.findMany({
+        where,
         orderBy: {
             createdAt: 'desc'
         },
@@ -26,6 +37,7 @@ export default async function CustomersPage() {
                 select: { transactions: true }
             },
             transactions: {
+                where: { status: "COMPLETED" },
                 select: { totalAmount: true }
             }
         }
